@@ -4,7 +4,7 @@
 
 $hostNames = Get-content "C:\Users\vjadwal\Documents\successfulConnections.txt"
 $localGroups = Get-content "C:\Users\vjadwal\Documents\groupsList.txt"
-$outputFile = "C:\Users\vjadwal\Documents\groupMembers.txt"
+$outputFile = "C:\Users\vjadwal\Documents\groupMembers.txt"
 $dataToBeWritten = @()
 foreach ($hostName in $hostNames){
 	$dataToBeWritten += 'Hostname: ' + $hostName
