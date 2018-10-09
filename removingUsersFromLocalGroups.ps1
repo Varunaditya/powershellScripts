@@ -9,7 +9,7 @@ $domains = Get-content "C:\Users\vjadwal\Documents\domains.txt"
 $outputFile = "C:\Users\vjadwal\Documents\machinesDetails.csv"
 $failedConnectionsLogs = "C:\Users\vjadwal\Documents\failedConnections.txt"
 $successfulConnectionsLogs = "C:\Users\vjadwal\Documents\successfulConnections.txt"
-$newOutputFile = "C:\Users\vjadwal\Documents\filteredMachinesDetails.csv"
+$groupDetailsFile = "C:\Users\vjadwal\Documents\membershipDetails.txt"
 #removing the files if they already exists
 if(Test-Path $outputFile) { remove-Item $outputFile }
 if(Test-Path $failedConnectionsLogs) { remove-Item $failedConnectionsLogs }
@@ -65,15 +65,14 @@ foreach ($hostName in $hostNames){
 	}
 	$dataToBeWritten += '------------------------------------------------'
 }
-$dataToBeWritten > $outputFile
-
+$dataToBeWritten > $groupDetailsFile
+notepad.exe $groupDetailsFile
 #removing users from a group
-
-$choice = 1
-while(choice){
-	$hostName = read-host -prompt 'Host Name: '
-	$groupName = read-host -prompt 'Group Name: '
-	$memberName = read-host -prompt 'Member Name: '
-	invoke-command -computername $hostName -scriptBlock{remove-localgroupmember -Group $groupName -Member $memberName}
-	$choice = read-host -prompt 'Remove A User From A Group? [1] Yes [2] No '
-}
+#$choice = read-host -prompt 'Remove A User From A Group? [1] Yes [2] No '
+#while(choice){
+#	if($choice -eq 2) {break}
+#	$hostName = read-host -prompt 'Host Name: '
+#	$groupName = read-host -prompt 'Group Name: '
+#	$memberName = read-host -prompt 'Member Name: '
+#	invoke-command -computername $hostName -scriptBlock{remove-localgroupmember -Group $groupName -Member $memberName}
+#}
