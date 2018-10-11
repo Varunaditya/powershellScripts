@@ -5,11 +5,14 @@
 #importing the active directory module
 Import-Module ActiveDirectory
 #adding all the domains in the array
+$startTime = $(get-date)
 $domains = Get-content "C:\Users\vjadwal\Documents\domains.txt"
 $outputFile = "C:\Users\vjadwal\Documents\machinesDetails.csv"
 $failedConnectionsLogs = "C:\Users\vjadwal\Documents\failedConnections.txt"
 $successfulConnectionsLogs = "C:\Users\vjadwal\Documents\successfulConnections.txt"
 $groupDetailsFile = "C:\Users\vjadwal\Documents\membershipDetails.txt"
+$hostNames = Get-content "C:\Users\vjadwal\Documents\successfulConnections.txt"
+$localGroups = Get-content "C:\Users\vjadwal\Documents\groupsList.txt"
 #removing the files if they already exists
 if(Test-Path $outputFile) { remove-Item $outputFile }
 if(Test-Path $failedConnectionsLogs) { remove-Item $failedConnectionsLogs }
@@ -46,9 +49,6 @@ Import-Csv $outputFile | ForEach-Object {
 $failedConnections > $failedConnectionsLogs
 $successfulConnections > $successfulConnectionsLogs
 #finding local members
-$hostNames = Get-content "C:\Users\vjadwal\Documents\successfulConnections.txt"
-$localGroups = Get-content "C:\Users\vjadwal\Documents\groupsList.txt"
-$outputFile = "C:\Users\vjadwal\Documents\groupMembers.txt"
 $dataToBeWritten = @()
 foreach ($hostName in $hostNames){
 	$dataToBeWritten += 'Hostname: ' + $hostName
@@ -66,13 +66,18 @@ foreach ($hostName in $hostNames){
 	$dataToBeWritten += '------------------------------------------------'
 }
 $dataToBeWritten > $groupDetailsFile
+sleep(2)
 notepad.exe $groupDetailsFile
+$elapsedTime = $(get-date) - $start
+write-host $elapsedTime.TotalMinutes
 #removing users from a group
-#$choice = read-host -prompt 'Remove A User From A Group? [1] Yes [2] No '
-#while(choice){
+#$choice = 1
+#while($choice){
+#	$choice = read-host -prompt 'Remove A User From A Group? [1] Yes [2] No '
 #	if($choice -eq 2) {break}
 #	$hostName = read-host -prompt 'Host Name: '
 #	$groupName = read-host -prompt 'Group Name: '
 #	$memberName = read-host -prompt 'Member Name: '
 #	invoke-command -computername $hostName -scriptBlock{remove-localgroupmember -Group $groupName -Member $memberName}
+#	write-host "User Removed!!!"
 #}
