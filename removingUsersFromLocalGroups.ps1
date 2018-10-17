@@ -5,22 +5,22 @@
 #importing the active directory module
 Import-Module ActiveDirectory
 #adding all the domains in the array
-$startTime = $(get-date)
-$domains = Get-content "C:\Users\vjadwal\Documents\domains.txt"
-$outputFile = "C:\Users\vjadwal\Documents\machinesDetails.csv"
-$failedConnectionsLogs = "C:\Users\vjadwal\Documents\failedConnections.txt"
-$successfulConnectionsLogs = "C:\Users\vjadwal\Documents\successfulConnections.txt"
-$groupDetailsFile = "C:\Users\vjadwal\Documents\membershipDetails.txt"
-$hostNames = Get-content "C:\Users\vjadwal\Documents\successfulConnections.txt"
-$localGroups = Get-content "C:\Users\vjadwal\Documents\groupsList.txt"
+#$startTime = $(get-date)
+$domains = Get-content ".\domains.txt"
+$outputFile = ".\machinesDetails.csv"
+$failedConnectionsLogs = ".\failedConnections.txt"
+$successfulConnectionsLogs = ".\successfulConnections.txt"
+$groupDetailsFile = ".\membershipDetails" + $(date) + ".txt"
+$localGroups = Get-content ".\groupsList.txt"
 #removing the files if they already exists
 if(Test-Path $outputFile) { remove-Item $outputFile }
 if(Test-Path $failedConnectionsLogs) { remove-Item $failedConnectionsLogs }
 if(Test-Path $successfulConnectionsLogs) { remove-Item $successfulConnectionsLogs }
+if(Test-Path $groupDetailsFile) { remove-Item $groupDetailsFile }
 #iterating through all the domains and appending the output in a csv file
 foreach($domain in $domains){
 	$outputStream += Get-ADComputer -fi "operatingSystem -like 'Windows *'" -prop * -Server $domain | 
-	select -prop Name, DNSHostName, Enabled, LastLogonDate
+	select -prop Name, DNSHostName, Enabled
 }
 #eliminating any redundancy in 'Names'. This happens due to one machine being part of more than one domain
 $outputStream | Sort-Object 'Name' -Unique | Export-Csv $outputFile
@@ -49,7 +49,9 @@ Import-Csv $outputFile | ForEach-Object {
 $failedConnections > $failedConnectionsLogs
 $successfulConnections > $successfulConnectionsLogs
 #finding local members
+$hostNames = Get-content $successfulConnectionsLogs #"C:\Users\vjadwal\Documents\successfulConnections.txt" 
 $dataToBeWritten = @()
+$membersToBeRemoved = @('Administrator', 'maintenance', 'Machine_setup', 'Domain Admins', 'ServerAdministrators', 'WorkstationAdministrators')
 foreach ($hostName in $hostNames){
 	$dataToBeWritten += 'Hostname: ' + $hostName
 	foreach ($localGroup in $localGroups){
@@ -60,16 +62,25 @@ foreach ($hostName in $hostNames){
 			$_.GetType().InvokeMember('Name', 'GetProperty', $null, $_, $null)
 			}
 		} -ArgumentList $localGroups -EA SilentlyContinue
+		$groupMembers = $groupMembers | select -unique
+		$groupMembers = [System.Collections.ArrayList]$groupMembers
+		#if($groupMembers.count -ne 0) {
+			foreach($memberToBeRemoved in $membersToBeRemoved) { 
+				if($groupMembers.count -ne 0) {
+					$groupMembers.remove($memberToBeRemoved) 
+				}
+			}
+		if($groupMembers.count -eq 0) { $groupMembers = 'Nothing unusual.'}
+		else {$groupMembers = $groupMembers -join ', '}
 		$dataToBeWritten += 'Members: ' + $groupMembers
-		$dataToBeWritten += ''
 	}
 	$dataToBeWritten += '------------------------------------------------'
 }
 $dataToBeWritten > $groupDetailsFile
 sleep(2)
 notepad.exe $groupDetailsFile
-$elapsedTime = $(get-date) - $start
-write-host $elapsedTime.TotalMinutes
+#$elapsedTime = $(get-date) - $start
+#write-host $elapsedTime.TotalMinutes
 #removing users from a group
 #$choice = 1
 #while($choice){
